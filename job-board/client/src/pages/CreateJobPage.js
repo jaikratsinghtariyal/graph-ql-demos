@@ -1,12 +1,20 @@
 import { useState } from 'react';
+import { createdJob } from '../lib/graphql/query';
+import { useNavigate } from 'react-router';
 
 function CreateJobPage() {
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleSubmit = (event) => {
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('should post a new job:', { title, description });
+    const job = await createdJob({title, description});
+
+    // console.log('should post a new job:', { title, description });
+    console.log('should post a new job:', job);
+    navigate(`/jobs/${job.id}`)
   };
 
   return (
