@@ -2,7 +2,6 @@ import { useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../lib/formatters';
-// import { jobs } from '../lib/fake-data';
 import { getJob } from '../lib/graphql/query';
 
 function JobPage() {
