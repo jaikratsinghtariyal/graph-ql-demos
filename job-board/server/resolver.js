@@ -2,6 +2,7 @@ import { getCompany } from './db/companies.js';
 import { deleteJob } from './db/jobs.js';
 import {getJobs, getJob, getJobsByCompany, createJob, updateJob} from './db/jobs.js'
 import { GraphQLError } from 'graphql';
+import { getUser } from './db/users.js';
 
 export const resolvers = {
     Query: {
@@ -30,18 +31,56 @@ export const resolvers = {
         company: (job) =>  getCompany(job.companyId),
     },
     Mutation: {
-        createJob: (_root, { input: {title, description}}) => {
-            const companyId = "FjcJCHJALA4i";
+        createJob: async (_root, { input: {title, description}}, {auth}) => {
+            console.log(auth)
+
+            if (!auth){
+                unauthorixedError("Missing Authentication");
+            }
+            const user = await getUser(auth.sub);
+            // console.log("user===" + user.id)
+            const companyId = user.companyId;
+
             return createJob({companyId, title, description})
         },
-        deleteJob: (_root, {id}) => {
-            return deleteJob(id);
+        deleteJob: async (_root, {id}, {auth}) => {
+            if (!auth){
+                unauthorixedError("Missing Authentication. Cant perform this operation.");
+            }
+            // const job = await getJob(id)
+            const user = await getUser(auth.sub);
+
+            // if (!(job.companyId == user.companyId)){
+            //     unauthorixedError("Missing Authentication. No permission to delete this job");
+            // }
+            const job = await deleteJob(id, user.companyId);
+            if (!job){
+                unauthorixedError("Missing Authentication. Cant delete this job.");
+            }
+
+            return job;
         },
-        updateJob: (_root, { input: {id, title, description}}) => {
-            return updateJob({id, title, description});
+        updateJob: async (_root, { input: {id, title, description}, },{auth}) => {
+            if (!auth){
+                unauthorixedError("Missing Authentication. Cant perform this operation.");
+            }
+            const user = await getUser(auth.sub);
+            const job = await updateJob({id, title, description, companyId: user.companyId});
+
+            if (!job){
+                unauthorixedError("Missing Authentication. Cant delete this job.");
+            }
+
+            return job;
         },
     },
 };
+
+function unauthorixedError (message){
+    throw new GraphQLError(message, {
+        extensions: {code: "UNAUTHORIZED"},
+    });
+}
 
 function handleError (message){
     throw new GraphQLError(message, {
