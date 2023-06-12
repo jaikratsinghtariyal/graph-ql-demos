@@ -32,7 +32,7 @@ export const resolvers = {
     },
     Mutation: {
         createJob: async (_root, { input: {title, description}}, {auth}) => {
-            console.log(auth)
+            console.log("auth-" + auth);
 
             if (!auth){
                 unauthorixedError("Missing Authentication");
