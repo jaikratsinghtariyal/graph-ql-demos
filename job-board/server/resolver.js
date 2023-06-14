@@ -1,4 +1,4 @@
-import { getCompany } from './db/companies.js';
+import {getCompany } from './db/companies.js';
 import { deleteJob } from './db/jobs.js';
 import {getJobs, getJob, getJobsByCompany, createJob, updateJob} from './db/jobs.js'
 import { GraphQLError } from 'graphql';
@@ -28,7 +28,8 @@ export const resolvers = {
     },
     Job: {
         date: (job) =>  job.createdAt.slice(0, 'yyyy-mm-dd'.length),
-        company: (job) =>  getCompany(job.companyId),
+        // company: (job) =>  getCompany(job.companyId),
+        company: (job, _args, {companyLoader}) => companyLoader.load(job.companyId),
     },
     Mutation: {
         createJob: async (_root, { input: {title, description}}, {auth}) => {
